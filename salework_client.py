@@ -346,7 +346,8 @@ class SaleworkClient:
     # ===================================================================
 
     def messages_get(self, conversation_id: str, account_id: str,
-                     page_size: int = 50, timestamp_after: str = "") -> List[Dict]:
+                     page_size: int = 50, before_timestamp: str = "",
+                     after_timestamp: str = "") -> List[Dict]:
         """
         Lấy tin nhắn của 1 hội thoại.
 
@@ -354,13 +355,14 @@ class SaleworkClient:
             conversation_id: "542711..._153265..._0_0"
             account_id: ID tài khoản Zalo
             page_size: Số lượng (max ~50)
-            timestamp_after: Lấy tin nhắn cũ hơn ts này (để load thêm)
+            before_timestamp: Lấy tin nhắn CŨ HƠN ts này (exclusive)
+            after_timestamp: Lấy tin nhắn MỚI HƠN hoặc bằng ts này (inclusive)
         """
         body = {
             "conversationId": conversation_id,
             "accountId": account_id,
-            "timestamp": "",
-            "timestampAfter": timestamp_after,
+            "timestamp": before_timestamp,
+            "timestampAfter": after_timestamp,
             "pageSize": page_size,
         }
         r = self._api_post("/api/message/filter", json=body)
@@ -369,12 +371,13 @@ class SaleworkClient:
         return []
 
     def messages_get_all(self, conversation_id: str, account_id: str,
-                         max_pages: int = 20) -> List[Dict]:
-        """Lấy tất cả tin nhắn (tự động phân trang)."""
+                         max_pages: int = 50) -> List[Dict]:
+        """Lấy tất cả tin nhắn từ mới nhất đến cũ nhất (tự động phân trang)."""
         all_msgs = []
         oldest_ts = ""
         for _ in range(max_pages):
-            msgs = self.messages_get(conversation_id, account_id, page_size=50, timestamp_after=oldest_ts)
+            msgs = self.messages_get(conversation_id, account_id,
+                                     page_size=50, before_timestamp=oldest_ts)
             if not msgs:
                 break
             all_msgs.extend(msgs)

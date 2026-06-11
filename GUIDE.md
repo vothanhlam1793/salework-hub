@@ -100,7 +100,7 @@ acc_id = "856268701098479404"
 msgs = client.messages_get(conv_id, acc_id, page_size=50)
 
 # Lấy tất cả (tự phân trang)
-all_msgs = client.messages_get_all(conv_id, acc_id, max_pages=20)
+all_msgs = client.messages_get_all(conv_id, acc_id, max_pages=50)
 
 # Tin nhắn đã ghim
 pinned = client.messages_pinned(acc_id, to_id="2843928821831153337")
