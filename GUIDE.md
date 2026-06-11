@@ -96,10 +96,16 @@ pinned = client.conversations_pinned()
 conv_id = "856268701098479404_2843928821831153337_0_0"
 acc_id = "856268701098479404"
 
-# Lấy 50 tin gần nhất
+# Lấy 50 tin mới nhất
 msgs = client.messages_get(conv_id, acc_id, page_size=50)
 
-# Lấy tất cả (tự phân trang)
+# Lấy tin cũ hơn 1 mốc (before_timestamp)
+older = client.messages_get(conv_id, acc_id, before_timestamp="1781193000000")
+
+# Lấy tin mới hơn 1 mốc (after_timestamp) — dùng để poll realtime
+newer = client.messages_get(conv_id, acc_id, after_timestamp="1781193000000")
+
+# Lấy TẤT CẢ tin nhắn từ mới nhất → cũ nhất (tự động phân trang)
 all_msgs = client.messages_get_all(conv_id, acc_id, max_pages=50)
 
 # Tin nhắn đã ghim
