@@ -414,8 +414,67 @@ class SaleworkClient:
         })
         return r.json().get("data", []) if r.status_code == 200 else []
 
+    @staticmethod
+    def message_sender(msg: Dict, account_id: str = None) -> str:
+        """
+        Xác định ai gửi tin nhắn.
+
+        Returns:
+            "in"  → người kia gửi đến
+            "out" → mình gửi đi
+        """
+        uid_from = str(msg.get("id", {}).get("uidFrom", ""))
+        if account_id and uid_from == account_id:
+            return "out"
+        if uid_from == "0" or not uid_from:
+            return "out"
+        return "in"
+
+    @staticmethod
+    def message_parse(msg: Dict, account_name: str = None,
+                      contact_name: str = None, account_id: str = None) -> Dict:
+        """
+        Parse 1 tin nhắn thành format dễ đọc cho agent.
+
+        Returns:
+            {direction: "in"/"out", sender: "Tên", content: "...", ts: "...", type: "..."}
+        """
+        direction = SaleworkClient.message_sender(msg, account_id)
+        content = msg.get("content", "")
+        msg_type = msg.get("msgType", "webchat")
+
+        if msg_type == "chat.photo" and isinstance(content, str):
+            try:
+                parsed = json.loads(content)
+                content = f"[Ảnh] {parsed.get('href', parsed.get('thumb', ''))}"
+            except Exception:
+                content = "[Ảnh]"
+
+        elif msg_type == "chat.sticker":
+            content = "[Sticker]"
+
+        elif msg_type == "chat.video.msg":
+            content = "[Video]"
+
+        elif msg_type == "chat.ecard":
+            content = "[Danh thiếp]"
+
+        elif msg_type == "chat.recommended":
+            content = "[Tin nhắn tự động]"
+
+        sender = contact_name if direction == "in" else (account_name or "Tôi")
+
+        return {
+            "direction": direction,
+            "sender": sender,
+            "content": content,
+            "ts": msg.get("ts", ""),
+            "type": msg_type,
+            "msg_id": msg.get("id", {}).get("msgId", ""),
+            "raw": msg,
+        }
+
     def messages_filter_by_type(self, conversation_id: str, account_id: str,
-                                 msg_types: List[str], page_size: int = 50,
                                  before_timestamp: str = "") -> List[Dict]:
         """
         Lọc tin nhắn theo loại (V2 API).
