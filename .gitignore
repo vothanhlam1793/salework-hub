@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+session.json
+tokens.json
+api_data/
+*.png
+*.jpg
+.DS_Store
+
