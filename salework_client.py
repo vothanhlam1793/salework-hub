@@ -414,6 +414,33 @@ class SaleworkClient:
         })
         return r.json().get("data", []) if r.status_code == 200 else []
 
+    def messages_filter_by_type(self, conversation_id: str, account_id: str,
+                                 msg_types: List[str], page_size: int = 50,
+                                 before_timestamp: str = "") -> List[Dict]:
+        """
+        Lọc tin nhắn theo loại (V2 API).
+
+        Args:
+            msg_types: Danh sách loại tin nhắn
+                ["chat.photo"]         -> chỉ ảnh
+                ["chat.video.msg"]     -> chỉ video
+                ["webchat"]            -> chỉ text
+                ["chat.sticker"]       -> chỉ sticker
+                ["chat.photo","chat.video.msg"] -> ảnh + video
+                []                     -> tất cả
+            before_timestamp: Phân trang (lấy tin cũ hơn ts này)
+        """
+        r = self._api_post("/api/messageV2/filter", json={
+            "conversationId": conversation_id,
+            "accountId": account_id,
+            "timestamp": before_timestamp,
+            "msgTypes": msg_types,
+            "pageSize": page_size,
+        })
+        if r.status_code == 200:
+            return r.json().get("data", [])
+        return []
+
     def messages_search(self, keyword: str, account_ids: List[str] = None,
                         max_convs: int = 30) -> List[Dict]:
         """
